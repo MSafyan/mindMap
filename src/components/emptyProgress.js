@@ -39,10 +39,11 @@ const EmptyProgress = ({elements}) => {
 
   useEffect(() => {
     const timerID = setInterval(() => totalDuration(elements), 10000)
+    console.log(elements);
     return () => {
       clearInterval(timerID)
     }
-  }, [])
+  }, [elements])
 
   useEffect(() => {
     console.log('width', ref.current ? ref.current.offsetWidth : 0);
@@ -57,7 +58,7 @@ const EmptyProgress = ({elements}) => {
   const totalDuration = (elements)=>{
     var Duration = 0;
     hierarchicallySorted=[];
-    debugger;
+    // debugger;
 
     var startingNode = elements.filter((el)=>{
       const pattern = /^horizontal-0/;

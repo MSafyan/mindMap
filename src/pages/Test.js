@@ -7,6 +7,7 @@ import moment from 'moment';
 import Layout from '../components/Layout';
 import NodeDialog from '../components/dialog';
 import Counter from '../components/Counter';
+import ColorSelectorNode from '../components/ColorSelectorNode';
 // import Moment from 'react-moment';
 
 import ReactFlow, {
@@ -14,14 +15,13 @@ import ReactFlow, {
   addEdge,
   Controls,
 } from 'react-flow-renderer';
-// import ColorSelectorNode from './ColorSelectorNode';
 const onNodeDragStop = (event, node) => console.log('drag stop', node);
-const initBgColor = '#1A192B';
+const initBgColor = '#fff';
 
 const connectionLineStyle = { stroke: '#fff' };
 const snapGrid = [20, 20];
 const nodeTypes = {
-  // selectorNode: ColorSelectorNode,
+  textNode: ColorSelectorNode,
 };
 
 const CustomNodeFlow = () => {
@@ -36,9 +36,9 @@ const CustomNodeFlow = () => {
           if (el.id === element.id) {
             // it's important that you create a new object here
             // in order to notify react flow about the change
-            el.style = { ...el.style, backgroundColor: '#ee2' };
+            el.style = { ...el.style, backgroundColor: '#b6ffff' };
           }else{
-            el.style = { ...el.style, backgroundColor: '#fff' };
+            // el.style = { ...el.style, backgroundColor: '#red' };
           }
           // console.log(el.style)
           return el;
@@ -72,6 +72,7 @@ const CustomNodeFlow = () => {
           },
           child : combinedColumns[a].child,
           position : combinedColumns[a].position,
+          style: {background:'#e5e5e5'}
         })
       }else{
         newConvertedArray.push({ 
@@ -80,21 +81,22 @@ const CustomNodeFlow = () => {
           targetPosition : 'left',
           number : combinedColumns[a].number,
           parent:`horizontal-${combinedColumns[a].parent}`,
-          type : 'default',
+          type : combinedColumns[a].node ? 'default' : 'textNode',
           estimatedDuration:combinedColumns[a]?.estimatedDuration || 100000,
           started: combinedColumns[a]?.started || undefined,
           startTime: combinedColumns[a]?.startTime || undefined,
           data : {
-            label : <h4>{combinedColumns[a].text}</h4>
+            label : combinedColumns[a].text
           },
           child : combinedColumns[a].child,
-          position:combinedColumns[a].position
+          position:combinedColumns[a].position,
+          style:combinedColumns[a].node ? {background:'#e5e5e5'} : {borderBottom:'1px solid #777',borderLeft:'1px solid #777',background:'transparent'}
         })
         newConvertedArray.push({
           id: `e${combinedColumns[a].parent}-${combinedColumns[a].key}`,
           source:  `horizontal-${combinedColumns[a].parent}`,
           target: `horizontal-${combinedColumns[a].key}`,
-          style: { stroke: '#fff' },
+          style: { stroke: '#001318' },
         })
       }
     }
@@ -236,23 +238,13 @@ const CustomNodeFlow = () => {
 
   const startTask=()=>{
     // debugger;
-    
     const unSelectedElements = elements.filter((el)=>{
       return el.id !== selectedElement.id
     })
     const SelectedElements = elements.filter((el)=>{
       return el.id === selectedElement.id
     })
-    // console.log(data);
-    // for(var a=0;a<data.length;a++){
-    //   if(parseInt(selectedElement.id.slice(11)) === data[a].key){
-    //     if(!selectedElement?.started){
-    //       data[a].started = true;
-    //       data[a].startTime = moment();    
-    //       setColumns();
-    //     }
-    //   }
-    // }
+
     SelectedElements[0].started = true;
     SelectedElements[0].startTime = moment();
 
