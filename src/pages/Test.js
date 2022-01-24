@@ -6,6 +6,7 @@ import data from '../consts/test';
 import moment from 'moment';
 import Layout from '../components/Layout';
 import NodeDialog from '../components/dialog';
+import Counter from '../components/Counter';
 // import Moment from 'react-moment';
 
 import ReactFlow, {
@@ -67,7 +68,7 @@ const CustomNodeFlow = () => {
           sourcePosition :'right',
           type : 'input',
           data : {
-            label : <h3>{combinedColumns[a].text}</h3>
+            label : combinedColumns[a].text
           },
           child : combinedColumns[a].child,
           position : combinedColumns[a].position,
@@ -77,6 +78,7 @@ const CustomNodeFlow = () => {
           id : `horizontal-${combinedColumns[a].key}`,
           sourcePosition : 'right',
           targetPosition : 'left',
+          number : combinedColumns[a].number,
           parent:`horizontal-${combinedColumns[a].parent}`,
           type : 'default',
           estimatedDuration:combinedColumns[a]?.estimatedDuration || 100000,
@@ -233,7 +235,7 @@ const CustomNodeFlow = () => {
   }
 
   const startTask=()=>{
-    debugger;
+    // debugger;
     
     const unSelectedElements = elements.filter((el)=>{
       return el.id !== selectedElement.id
@@ -323,6 +325,8 @@ const CustomNodeFlow = () => {
         <Button onClick={()=>setColumns()}>
           setColumns
         </Button>
+
+        <Counter/>
 
         <EmptyProgress elements={elements}/>
       </div>

@@ -14,9 +14,11 @@ const useStyles = makeStyles((theme) => ({
     display:'flex'
   },
 	lable: {
-		borderRadius:'1rem',
-    width:'0.5em',
-    background:'red'
+    height: '15px',
+    width: '15px',
+    backgroundColor: '#bbb',
+    borderRadius: '50%',
+    display: 'inline-block'
 	},
 }));
 var hierarchicallySorted=[];
@@ -27,6 +29,20 @@ const EmptyProgress = ({elements}) => {
   const ref = useRef(null);
   const [divWidth,setDivWidth]=useState(0);
   const [durationElements,setDurationElements] = useState([]);
+
+  const init = new Date()
+  const [date, setDate] = useState(init)
+
+  const tick = () => {
+    setDate(new Date())
+  }
+
+  useEffect(() => {
+    const timerID = setInterval(() => totalDuration(elements), 10000)
+    return () => {
+      clearInterval(timerID)
+    }
+  }, [])
 
   useEffect(() => {
     console.log('width', ref.current ? ref.current.offsetWidth : 0);
@@ -40,7 +56,8 @@ const EmptyProgress = ({elements}) => {
 
   const totalDuration = (elements)=>{
     var Duration = 0;
-    // debugger;
+    hierarchicallySorted=[];
+    debugger;
 
     var startingNode = elements.filter((el)=>{
       const pattern = /^horizontal-0/;
@@ -66,10 +83,14 @@ const EmptyProgress = ({elements}) => {
   const findChildren = (el)=>{
     // debugger;
     if(el?.child > 0){
-      for(var a=0;a<nodeElments.length;a++){
-        if(nodeElments[a].parent === el.id){
-          hierarchicallySorted.push(nodeElments[a])
-          findChildren(nodeElments[a]);
+      var number = 0;
+      for(var a=0;a<el.child;a++){
+        for(var b=0;b<nodeElments.length;b++){
+          if(nodeElments[b].parent === el.id && nodeElments[b].number === number){
+            number++;
+            hierarchicallySorted.push(nodeElments[b])
+            findChildren(nodeElments[b]);
+          }
         }
       }
     }
@@ -80,31 +101,10 @@ const EmptyProgress = ({elements}) => {
     // debugger;
     var assignedSpace = 0;
     for(var a=0;a<hierarchicallySorted.length;a++){
-      // hierarchicallySorted[a].percent = '0';
-      // for(var b=0;b<hierarchicallySorted.length;b++){
-        // var found = hierarchicallySorted[b].id === temp[a].id;
-        // if(found){
+      hierarchicallySorted[a].percent = '0';
           hierarchicallySorted[a].startPoint = ( assignedSpace / Duration ) * divWidth ;
           hierarchicallySorted[a].width = (hierarchicallySorted[a].estimatedDuration / Duration) *divWidth;
           assignedSpace += hierarchicallySorted[a].estimatedDuration;
-          // if(temp[a].started){
-          //   debugger;
-          //   const diff = moment().diff(temp[a].startTime);
-          //   temp[a].percent = (diff / temp[a].duration) * 100;
-            
-          // }
-
-          // for(var c=0;c<temp.length;c++){
-          //   for(var d=1;d<=temp.length;d++){
-          //     if(temp[c].id === `horizontal-${c}-${d}`){
-          //       temp[c].startPoint = ( assignedSpace / Duration ) * divWidth ;
-          //       temp[c].width = (temp[c].duration / Duration) *divWidth;
-          //       assignedSpace += temp[c].duration;
-          //     }
-          //   }
-          // }
-        // }
-      // }
     }
   }
 
@@ -128,19 +128,15 @@ const EmptyProgress = ({elements}) => {
           return (
             <div className={classes.subBar} style={{left:val.startPoint,width:val.width}}>
               <span className={classes.lable}>
-                1
+                
               </span>
               <progress value={val.percent} max='100' style={{width:'100%'}}/>
             </div>
           )
         })
       }
-      <progress value='0' max='100' style={{width:'100%'}}/>
       <Button onClick={()=>totalDuration(elements)}>
         useEffect
-      </Button>
-      <Button onClick={()=>CalculatePercentage()}>
-        CalculatePercentage
       </Button>
     </div>
   );
