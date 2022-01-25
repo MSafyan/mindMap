@@ -10,14 +10,17 @@ import {Paper,TextField} from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    width: 500,
+    // width: 500,
+    padding:'1rem'
   },
-  typography: {
+  header: {
     padding: theme.spacing(2),
+    background:'black',
+    color:"white"
   },
 }));
 
-export default function PositionedPopper({AddNode}) {
+export default function PositionedPopper({nodeText,setNodeText,AddNode}) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
   const [placement, setPlacement] = React.useState();
@@ -29,24 +32,34 @@ export default function PositionedPopper({AddNode}) {
     setPlacement(newPlacement);
   };
 
+
   return (
     <div className={classes.root}>
-      <Popper open={open} anchorEl={anchorEl} placement={placement} transition>
+      <Popper open={open} anchorEl={anchorEl} placement={placement} transition style={{marginBottom:'2rem',zIndex:'1000'}}>
         {({ TransitionProps }) => (
           <Fade {...TransitionProps} timeout={350}>
             <Paper>
-              <Typography className={classes.typography}>The content of the Popper.</Typography>
-              <TextField id="standard-basic" label="Standard" />
-              <Button onClick={()=>AddNode()}>
-                AddNow
-              </Button>
+              <div>
+              <Typography className={classes.header}>It seems like you have a task. Add to Map?</Typography>
+                <div style={{padding:'1rem'}}>
+                <TextField label="Node Text" style={{width:'100%'}} id="standard-basic" value={nodeText} onChange={(e)=>{
+                  setNodeText(e.target.value)
+                  console.log(nodeText)
+                }} />
+                </div>
+                <div style={{display:"flex",justifyContent:'flex-end'}}> 
+                  <Button style={{background:"#b6ffff",margin:'1rem'}} onClick={()=>AddNode()}>
+                    Add to Map
+                  </Button>
+                </div>
+              </div>
             </Paper>
           </Fade>
         )}
       </Popper>
-      <Grid container>
-        <Button onClick={handleClick('right-end')}>right-end</Button>
-      </Grid>
+      <div style={{display:'flex',justifyContent:'flex-end'}}>
+        <Button style={{background:'#b6ffff'}} onClick={handleClick('top-end')}>Assembo, write that down! (ctrl+r)</Button>
+      </div>
     </div>
   );
 }

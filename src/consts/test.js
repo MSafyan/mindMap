@@ -20,5 +20,8 @@ const rawData = {
 }
 
 const data = rawData.mindMap.nodeDataArray;
+export const blue = '#b6ffff'
+export const gray = '#e5e5e5'
+export const red = '#ff7272'
 
 export default data;

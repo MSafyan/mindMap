@@ -21,14 +21,14 @@ const useStyles = makeStyles((theme) => ({
     display: 'inline-block'
 	},
 }));
-var hierarchicallySorted=[];
 var nodeElments = [];
+var hierarchicallySorted=[];
 
-const EmptyProgress = ({elements}) => {
+const EmptyProgress = ({elements,durationElements,setDurationElements}) => {
   const classes = useStyles();
   const ref = useRef(null);
   const [divWidth,setDivWidth]=useState(0);
-  const [durationElements,setDurationElements] = useState([]);
+  // const [durationElements,setDurationElements] = useState([]);
 
   const init = new Date()
   const [date, setDate] = useState(init)
@@ -51,7 +51,7 @@ const EmptyProgress = ({elements}) => {
   }, [ref]);
 
   useEffect(()=>{
-    console.log(elements);
+    // console.log(elements);
     totalDuration(elements);
   },[elements])
 
@@ -117,6 +117,9 @@ const EmptyProgress = ({elements}) => {
         // debugger;
         const diff = moment().diff(hierarchicallySorted[a].startTime);
         hierarchicallySorted[a].percent = `${(diff / hierarchicallySorted[a].estimatedDuration) * 100}`; 
+        if(parseInt(hierarchicallySorted[a].percent) >= 90){
+          hierarchicallySorted[a].percent = '90'
+        }
       }
     }
     setDurationElements(hierarchicallySorted);
@@ -131,14 +134,14 @@ const EmptyProgress = ({elements}) => {
               <span className={classes.lable}>
                 
               </span>
-              <progress value={val.percent} max='100' style={{width:'100%'}}/>
+              <progress value={val?.completed? '100': val.percent} max='100' style={{width:'100%'}}/>
             </div>
           )
         })
       }
-      <Button onClick={()=>totalDuration(elements)}>
+      {/* <Button onClick={()=>totalDuration(elements)}>
         useEffect
-      </Button>
+      </Button> */}
     </div>
   );
 };

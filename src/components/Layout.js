@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
+import {Button,Drawer} from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
@@ -17,7 +17,15 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
-import DeleteIcon from '@material-ui/icons/Delete';
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import FormatListBulletedIcon from '@material-ui/icons/FormatListBulleted';
+import {gray} from '../consts/test'
+import StopDialog from './StopDialog';
+import Link from '@material-ui/core/Link';
+import Agenda from '../components/Agenda'
+
+import { toast } from "react-toastify";
 
 const drawerWidth = 240;
 
@@ -27,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     background:'#e5e5e5',
+    color:'black',
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
       easing: theme.transitions.easing.sharp,
@@ -88,10 +97,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function MiniDrawer({children}) {
+export default function MiniDrawer({durationElements, CompleteTask, recording,startRecording,stopRecording, selectedElement, startTask,children}) {
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+ 
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -110,29 +120,47 @@ export default function MiniDrawer({children}) {
           [classes.appBarShift]: open,
         })}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            className={clsx(classes.menuButton, {
-              [classes.hide]: open,
-            })}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap>
-            Agenda Map
-          </Typography>
-          <Button
-            variant="contained"
-            color="secondary"
-            className={classes.button}
-            startIcon={<DeleteIcon />}
-          >
-            Delete
-          </Button>
+        <Toolbar style={{display:'flex',justifyContent:'space-between'}}>
+          <div>
+          <Link href='/' style={{ textDecoration: 'none' }}>
+            <Typography variant="h6" noWrap>
+              Agenda Map
+            </Typography>
+          </Link>
+          </div>
+          <div >
+            <Button
+              variant="contained"
+              style = {{background:gray}}
+              startIcon={<CheckBoxOutlineBlankIcon style={{color:'black'}}/>}
+              onClick={()=>{CompleteTask()}}>
+              Mark Complete
+            </Button>
+            {
+              !recording ? (
+                <Button
+                variant="contained"
+                className={classes.button}
+                style = {{background:'#b6ffff'}}
+                startIcon={<FiberManualRecordIcon style={{color:"#FF7272"}}/>}
+                onClick={()=>{
+                  console.log(selectedElement);
+                  if(selectedElement === undefined || selectedElement === null){
+                    toast.warn('Please select a Node before starting the timer');
+                  }else{
+                    startRecording();
+                    startTask();
+                  }
+                }}
+              >
+                Start Recording
+              </Button>
+              ):(
+                <StopDialog stopRecording={stopRecording}/>
+              )
+            }
+            <Agenda durationElements={durationElements}/>
+          </div>
         </Toolbar>
       </AppBar>
       <Drawer
