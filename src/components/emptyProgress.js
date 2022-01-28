@@ -1,7 +1,10 @@
-import React,{useRef,useEffect,useState} from 'react';
+import React,{useRef,useEffect,useState, useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {Button} from '@material-ui/core';
 import moment from 'moment'
+import {blue} from '../consts/test'
+import Moment from 'react-moment';
+import { RecordingContext } from '../context';
+import {Button} from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   mainBar:{
@@ -20,14 +23,22 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: '50%',
     display: 'inline-block'
 	},
+	lable1: {
+    height: '20px',
+    width: '20px',
+    backgroundColor: blue,
+    borderRadius: '50%',
+    display: 'inline-block'
+	},
 }));
 var nodeElments = [];
 var hierarchicallySorted=[];
 
-const EmptyProgress = ({elements,durationElements,setDurationElements}) => {
+const EmptyProgress = ({ elements,durationElements,setDurationElements}) => {
   const classes = useStyles();
   const ref = useRef(null);
   const [divWidth,setDivWidth]=useState(0);
+  const {recording,setRecording} = useContext(RecordingContext);
   // const [durationElements,setDurationElements] = useState([]);
 
   const init = new Date()
@@ -38,12 +49,14 @@ const EmptyProgress = ({elements,durationElements,setDurationElements}) => {
   }
 
   useEffect(() => {
-    const timerID = setInterval(() => totalDuration(elements), 10000)
-    console.log(elements);
-    return () => {
-      clearInterval(timerID)
+    if(recording){
+      const timerID = setInterval(() => totalDuration(elements), 5000)
+      return () => {
+        clearInterval(timerID)
+      }
     }
-  }, [elements])
+    console.log(elements);
+  }, [elements,recording])
 
   useEffect(() => {
     console.log('width', ref.current ? ref.current.offsetWidth : 0);
@@ -72,6 +85,9 @@ const EmptyProgress = ({elements,durationElements,setDurationElements}) => {
     findChildren(startingNode[0]);
 
     hierarchicallySorted.map((el)=>{
+      if(el.type === 'textNode'){
+        return;
+      }
       Duration += el.estimatedDuration || 0;
       el.percent='0';
     })
@@ -102,23 +118,36 @@ const EmptyProgress = ({elements,durationElements,setDurationElements}) => {
     // debugger;
     var assignedSpace = 0;
     for(var a=0;a<hierarchicallySorted.length;a++){
-      hierarchicallySorted[a].percent = '0';
-          hierarchicallySorted[a].startPoint = ( assignedSpace / Duration ) * divWidth ;
-          hierarchicallySorted[a].width = (hierarchicallySorted[a].estimatedDuration / Duration) *divWidth;
-          assignedSpace += hierarchicallySorted[a].estimatedDuration;
+      if(hierarchicallySorted[a].type !== 'textNode'){
+        hierarchicallySorted[a].percent = '0';
+        hierarchicallySorted[a].startPoint = ( assignedSpace / Duration ) * divWidth ;
+        hierarchicallySorted[a].width = (hierarchicallySorted[a].estimatedDuration / Duration) *divWidth;
+        assignedSpace += hierarchicallySorted[a].estimatedDuration;
+      }
     }
   }
 
 
 
   const CalculatePercentage = ()=>{
+    console.log(recording)
+    if(!recording){
+      // setDurationElements(hierarchicallySorted);
+      return;
+    }
     for(var a=0;a< hierarchicallySorted.length; a++){
       if(hierarchicallySorted[a].started){
         // debugger;
         const diff = moment().diff(hierarchicallySorted[a].startTime);
         hierarchicallySorted[a].percent = `${(diff / hierarchicallySorted[a].estimatedDuration) * 100}`; 
-        if(parseInt(hierarchicallySorted[a].percent) >= 90){
-          hierarchicallySorted[a].percent = '90'
+        
+        var duration = ( hierarchicallySorted[a].estimatedDuration - diff) ;
+        console.log(duration);
+        hierarchicallySorted[a].diff = moment('2000-01-01 00:00:00').add(moment.duration(duration)).format('HH:mm:ss');
+
+        if(parseInt(hierarchicallySorted[a].percent) >= 95){
+          hierarchicallySorted[a].percent = '95'
+          hierarchicallySorted[a].diff = 'overtime'
         }
       }
     }
@@ -129,19 +158,23 @@ const EmptyProgress = ({elements,durationElements,setDurationElements}) => {
     <div ref={ref} className={classes.mainBar}>
       {
         durationElements.map((val)=>{
-          return (
-            <div className={classes.subBar} style={{left:val.startPoint,width:val.width}}>
-              <span className={classes.lable}>
-                
-              </span>
-              <progress value={val?.completed? '100': val.percent} max='100' style={{width:'100%'}}/>
-            </div>
+          if(val.type === 'textNode'){
+            return;
+          }
+          return (<>
+              <div className={classes.subBar} style={{left:val.startPoint,width:val.width}}>
+              {val.started && <span style={{position:'absolute',top:'20px'}}>{val.diff}</span>}
+                {/* <span style={{position:'absolute'}}> */}
+                {/* </span> */}
+                <span className={val.type==='textNode'? classes.lable1:classes.lable}>
+                  
+                </span>
+                <progress value={val?.completed? '100': val.percent} max='100' style={{width:'100%'}}/>
+              </div>
+            </>
           )
         })
       }
-      {/* <Button onClick={()=>totalDuration(elements)}>
-        useEffect
-      </Button> */}
     </div>
   );
 };

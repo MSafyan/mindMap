@@ -1,30 +1,30 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import clsx from 'clsx';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-import {Button,Drawer} from '@material-ui/core';
+import {Button,Drawer,Avatar} from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import DashboardOutlinedIcon from '@material-ui/icons/DashboardOutlined';
+import SubscriptionsIcon from '@material-ui/icons/Subscriptions';
+import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import FormatListBulletedIcon from '@material-ui/icons/FormatListBulleted';
+import IconButton from '@material-ui/core/IconButton';
+
 import {gray} from '../consts/test'
 import StopDialog from './StopDialog';
-import Link from '@material-ui/core/Link';
-import Agenda from '../components/Agenda'
-
+import PeopleDialog from './PeopleDialog';
+import Agenda from './Agenda';
+// import Link from '@material-ui/core/Link';
+import {Link} from 'react-router-dom'
+import { RecordingContext,AppContext } from '../context';
 import { toast } from "react-toastify";
 
 const drawerWidth = 240;
@@ -34,9 +34,10 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
   },
   appBar: {
-    background:'#e5e5e5',
+    boxShadow:null,
+    background:'white',
     color:'black',
-    zIndex: theme.zIndex.drawer + 1,
+    // zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -89,7 +90,12 @@ const useStyles = makeStyles((theme) => ({
     ...theme.mixins.toolbar,
   },
   Icons:{
-    color:'gray'
+    color:'gray',
+    minWidth:'0px',
+    margin:'auto'
+  },
+  spaceDiv:{
+    width: theme.spacing(7) + 1,
   },
   content: {
     flexGrow: 1,
@@ -97,10 +103,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function MiniDrawer({durationElements, CompleteTask, recording,startRecording,stopRecording, selectedElement, startTask,children}) {
+export default function MiniDrawer({ CompleteTask, selectedElement, startTask,children}) {
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const {recording,setRecording} = useContext(RecordingContext)
+  const {durationElements} = useContext(AppContext)
  
 
   const handleDrawerOpen = () => {
@@ -119,11 +127,11 @@ export default function MiniDrawer({durationElements, CompleteTask, recording,st
         className={clsx(classes.appBar, {
           [classes.appBarShift]: open,
         })}
-      >
+        >
         <Toolbar style={{display:'flex',justifyContent:'space-between'}}>
           <div>
-          <Link href='/' style={{ textDecoration: 'none' }}>
-            <Typography variant="h6" noWrap>
+          <Link to='/' style={{ textDecoration: 'none' }}>
+            <Typography style={{color:'black',paddingLeft:'80px'}} variant="h6" noWrap>
               Agenda Map
             </Typography>
           </Link>
@@ -133,7 +141,13 @@ export default function MiniDrawer({durationElements, CompleteTask, recording,st
               variant="contained"
               style = {{background:gray}}
               startIcon={<CheckBoxOutlineBlankIcon style={{color:'black'}}/>}
-              onClick={()=>{CompleteTask()}}>
+              onClick={()=>{
+                if(recording){
+                  CompleteTask()
+                }else{
+                  toast.warn('plaase start recording first')
+                }
+              }}>
               Mark Complete
             </Button>
             {
@@ -148,7 +162,7 @@ export default function MiniDrawer({durationElements, CompleteTask, recording,st
                   if(selectedElement === undefined || selectedElement === null){
                     toast.warn('Please select a Node before starting the timer');
                   }else{
-                    startRecording();
+                    setRecording(true);
                     startTask();
                   }
                 }}
@@ -156,10 +170,21 @@ export default function MiniDrawer({durationElements, CompleteTask, recording,st
                 Start Recording
               </Button>
               ):(
-                <StopDialog stopRecording={stopRecording}/>
-              )
-            }
-            <Agenda durationElements={durationElements}/>
+                <StopDialog/>
+                )
+              }
+              {
+                durationElements.length>0 && <>
+                  <Link onClick={()=>{toast.warn("will clear the progress")}} to='/agenda' style={{ textDecoration: 'none' }}>
+                  <IconButton>
+                    <FormatListBulletedIcon/>
+                  </IconButton>
+                </Link>
+                <Agenda/>
+                </>
+              }
+            
+            <PeopleDialog/>
           </div>
         </Toolbar>
       </AppBar>
@@ -176,19 +201,34 @@ export default function MiniDrawer({durationElements, CompleteTask, recording,st
           }),
         }}
       >
-        <div className={classes.toolbar}>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-          </IconButton>
-        </div>
+
         <Divider />
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon className={classes.Icons}>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          <ListItem button>
+            <ListItemIcon className={classes.Icons}> 
+              <Avatar alt="Remy Sharp" src="output.png" />
+            </ListItemIcon>
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon className={classes.Icons}> 
+              <DashboardOutlinedIcon />
+            </ListItemIcon>
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon className={classes.Icons}> 
+              <SubscriptionsIcon />
+            </ListItemIcon>
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon className={classes.Icons}>
+              <Avatar alt="Remy Sharp" src="user-20.jpg" />
+            </ListItemIcon>
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon className={classes.Icons}>
+              <MoreHorizIcon />
+            </ListItemIcon>
+          </ListItem>
         </List>
       </Drawer>
       <main className={classes.content}>

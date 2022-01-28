@@ -11,7 +11,8 @@ import {Paper,TextField} from '@material-ui/core';
 const useStyles = makeStyles((theme) => ({
   root: {
     // width: 500,
-    padding:'1rem'
+    padding:'1rem',
+    marginTop:'2rem'
   },
   header: {
     padding: theme.spacing(2),

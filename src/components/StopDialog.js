@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -7,7 +7,7 @@ import Dialog from '@material-ui/core/Dialog';
 import { blue } from '@material-ui/core/colors';
 import StopIcon from '@material-ui/icons/Stop';
 import {red} from '../consts/test'
-
+import { RecordingContext } from '../context';
 const emails = ['username@gmail.com', 'user02@gmail.com'];
 const useStyles = makeStyles({
   avatar: {
@@ -17,8 +17,9 @@ const useStyles = makeStyles({
 });
 
 function SimpleDialog(props) {
+  const {setRecording} = useContext(RecordingContext);
   const classes = useStyles();
-  const { onClose, selectedValue, open,stopRecording } = props;
+  const { onClose, selectedValue, open } = props;
 
   const handleClose = () => {
     onClose(selectedValue);
@@ -35,7 +36,7 @@ function SimpleDialog(props) {
           <Button style={{background:"#c4c4c4",margin:'1rem'}} onClick={()=>{handleClose()}}>
             Cancel
           </Button>
-          <Button style={{background:"#b6ffff",margin:'1rem'}} onClick={()=>{stopRecording()}}>
+          <Button style={{background:"#b6ffff",margin:'1rem'}} onClick={()=>{setRecording(false)}}>
             Stop
           </Button>
         </div>
@@ -50,7 +51,7 @@ SimpleDialog.propTypes = {
   selectedValue: PropTypes.string.isRequired,
 };
 
-export default function SimpleDialogDemo({stopRecording}) {
+export default function SimpleDialogDemo() {
   const [open, setOpen] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState(emails[1]);
 
@@ -75,7 +76,7 @@ export default function SimpleDialogDemo({stopRecording}) {
       >
         Stop Recording
       </Button>
-      <SimpleDialog stopRecording={stopRecording} selectedValue={selectedValue} open={open} onClose={handleClose} />
+      <SimpleDialog selectedValue={selectedValue} open={open} onClose={handleClose} />
     </div>
   );
 }

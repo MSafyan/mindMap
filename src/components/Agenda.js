@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -9,6 +9,7 @@ import StopIcon from '@material-ui/icons/Stop';
 import {red} from '../consts/test'
 import FormatListBulletedIcon from '@material-ui/icons/FormatListBulleted';
 import IconButton from '@material-ui/core/IconButton';
+import { AppContext } from '../context';
 
 
 const emails = ['username@gmail.com', 'user02@gmail.com'];
@@ -21,19 +22,18 @@ const useStyles = makeStyles({
 
 function SimpleDialog(props) {
   const classes = useStyles();
-  const { onClose, selectedValue, open,durationElements } = props;
+  const { onClose, selectedValue, open } = props;
+  const {durationElements} = useContext(AppContext);
 
   const listItems = durationElements.map((number) =>{
     if(number.position.x <= 250){
       return <Typography 
         style={{marginLeft:`${number.position.x / 250}rem`}} 
-        variant="h4"key={number.id}>{number.data.label}</Typography>
-      // return <div style={{marginLeft:`${number.position.x / 250}rem`}} key={number.id}>{number.data.label}</div>
+        variant="body1"key={number.id}>{number.data.label}</Typography>
     }else if(number.position.x == 500){
       return <Typography 
         style={{marginLeft:`${number.position.x / 250}rem`}} 
-        variant="h5"key={number.id}>{number.data.label}</Typography>
-      // return <div style={{marginLeft:`${number.position.x / 250}rem`}} key={number.id}>{number.data.label}</div>
+        variant="body1"key={number.id}>{number.data.label}</Typography>
     }
     else{
       return <Typography 
@@ -71,7 +71,7 @@ SimpleDialog.propTypes = {
   selectedValue: PropTypes.string.isRequired,
 };
 
-export default function SimpleDialogDemo({durationElements}) {
+export default function SimpleDialogDemo() {
   const [open, setOpen] = React.useState(false);
   const [selectedValue, setSelectedValue] = React.useState(emails[1]);
 
@@ -88,12 +88,11 @@ export default function SimpleDialogDemo({durationElements}) {
     <div style={{display:"inline-block"}}>
       <label htmlFor="Agenda List">
         <IconButton onClick={()=>{
-          console.log(durationElements);
           handleClickOpen()}} color="primary" aria-label="upload picture" component="span">
           <FormatListBulletedIcon />
         </IconButton>
       </label>
-      <SimpleDialog durationElements={durationElements} selectedValue={selectedValue} open={open} onClose={handleClose} />
+      <SimpleDialog selectedValue={selectedValue} open={open} onClose={handleClose} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Button } from '@material-ui/core';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback,useContext } from 'react';
 import EmptyProgress from '../components/emptyProgress';
 import './Test.css'
 import data from '../consts/test';
@@ -7,10 +7,14 @@ import {gray,blue} from '../consts/test';
 import moment from 'moment';
 import Layout from '../components/Layout';
 import NodeDialog from '../components/dialog';
-import Counter from '../components/Counter';
+// import Counter from '../components/Counter';
 import TextNode from '../components/TextNode';
 import TopicNode from '../components/TopicNode';
 // import Moment from 'react-moment';
+import { toast } from "react-toastify";
+import { AppContext,RecordingContext } from '../context';
+import {red} from '../consts/test'
+
 
 import ReactFlow, {
   removeElements,
@@ -31,10 +35,12 @@ const CustomNodeFlow = () => {
   const [reactflowInstance, setReactflowInstance] = useState(null);
   const [elements, setElements] = useState([]);
   const [selectedElement, setSelectedElement] = useState(null);
-  const [recording,setRecording] = React.useState(false);
-  const [durationElements,setDurationElements] = useState([]);
+  const { durationElements, setDurationElements } = useContext(AppContext);
+  const { setRecording } = useContext(RecordingContext);
+
   const [count,setCount]=useState(0);
   const [nodeText,setNodeText]=useState('');
+  const [percentage,setPercentage]=useState('0')
 
 
   const onElementClick = (event, element) => {
@@ -44,12 +50,12 @@ const CustomNodeFlow = () => {
             setSelectedElement(el);
             // it's important that you create a new object here
             // in order to notify react flow about the change
-            el.style = { ...el.style, backgroundColor: '#b6ffff' };
+            el.style = { ...el.style, backgroundColor: red };
           }else{
             if(el.type !== 'textNode'){
               el.style = { ...el.style, backgroundColor: gray };
             }else if(el.type === 'textNode'){
-              el.style = { ...el.style, backgroundColor:'transparent' }
+              el.style = { ...el.style, backgroundColor:'white' }
             }
           }
           // console.log(el)
@@ -68,12 +74,14 @@ const CustomNodeFlow = () => {
   var combinedColumns=[];
   var unSelectedElements=[];
   var SelectedElements=[];
+  var blueElements =[]
+  var SelectedElementsTextChild=[];
 
   const convertToReactFlow = () =>{
     combinedColumns = [
       ...columnOneElements, ...columnTwoElements,
       ...columnTheeElements, ...columnFourElements]
-      // debugger;
+      debugger;
 
     for(var a=0; a<combinedColumns.length; a++){
       if(combinedColumns[a].parent === undefined){
@@ -86,9 +94,17 @@ const CustomNodeFlow = () => {
           },
           child : combinedColumns[a].child,
           position : combinedColumns[a].position,
-          style: {background:'#e5e5e5'}
+          style: {backgroundColor:'#e5e5e5'}
         })
       }else{
+        var bg = gray;
+        // for(var c=0; c<combinedColumns.length;c++){
+          if(combinedColumns[a].key===1){
+            bg = blue
+            // setSelectedElement(els=>[...els,combinedColumns[a]]);
+          }
+        // }
+
         newConvertedArray.push({ 
           id : `horizontal-${combinedColumns[a].key}`,
           sourcePosition : 'right',
@@ -106,7 +122,8 @@ const CustomNodeFlow = () => {
           },
           child : combinedColumns[a].child,
           position:combinedColumns[a].position,
-          style:combinedColumns[a].node ? {background:'#e5e5e5',padding:'0.5rem',border:'1px solid #777'} : {borderBottom:'1px solid #777',borderLeft:'1px solid #777',background:'transparent'}
+          style:combinedColumns[a].node ? 
+          {backgroundColor:bg ,padding:'0.5rem',border:'1px solid #777'} : {borderBottom:'1px solid #777',borderLeft:'1px solid #777',backgroundColor:'white'}
         })
         newConvertedArray.push({
           id: `e${combinedColumns[a].parent}-${combinedColumns[a].key}`,
@@ -116,8 +133,9 @@ const CustomNodeFlow = () => {
         })
       }
     }
-    // debugger;
+    debugger;
     setElements(newConvertedArray);
+    console.log(elements);
   }
 
   const setColumns = () =>{
@@ -130,9 +148,14 @@ const CustomNodeFlow = () => {
     
     setPositioncolumnOne(columnOneElements);
     setPositionOtherColumns(columnTwoElements,columnOneElements,columnMaxChildCount[1].multiplier);
-    // debugger;
     setPositionOtherColumns(columnTheeElements,columnTwoElements,columnMaxChildCount[2].multiplier);
     setPositionOtherColumns(columnFourElements,columnTheeElements,1);
+    
+    blueElements.push(columnTwoElements[0]);
+
+
+    console.log(elements);
+
     convertToReactFlow();
   }
 
@@ -193,7 +216,6 @@ const CustomNodeFlow = () => {
   }
 
   const setPositionOtherColumns = (columnElements,parentColumnElements,multiplier) =>{
-    // debugger;
     for(var a=0;a<parentColumnElements.length;a++){
       for(var b=0;b<columnElements.length;b++){
         if(parentColumnElements[a].key === columnElements[b].parent){
@@ -208,8 +230,7 @@ const CustomNodeFlow = () => {
           }
           else {
             var saver;
-            // debugger;
-            if(columnElements[b]?.child > 0){
+            if(columnElements[b]?.number > 0){
               saver = (multiplier * Math.ceil(columnElements[b].number / 2) );
             }else{
               saver = 1.5;
@@ -221,7 +242,8 @@ const CustomNodeFlow = () => {
             }else{
               columnElements[b].position =  {
                 x : parentColumnElements[a].position.x + 250 , 
-                y : parentColumnElements[a].position.y + ( 60 * saver)}
+                y : parentColumnElements[a].position.y + ( 60 * saver)
+              }
             }
           }
         }
@@ -230,6 +252,13 @@ const CustomNodeFlow = () => {
   }
 
   const AddNode =()=>{
+    if(!selectedElement.id){
+      return toast.warn('Please select a Node first')
+    }else if(selectedElement.type==='textNode'){
+      return toast.warn('Can not add to text Node')
+    }else if(selectedElement.position.x>=750){
+      return toast.warn('Can not add to this Column');
+    }
     if(selectedElement){
       for(var a=0;a<elements.length;a++){
         if(elements[a].id===selectedElement.id){
@@ -250,17 +279,41 @@ const CustomNodeFlow = () => {
         }
       }
     }
+    setRecording(false);
   }
 
   const startTask=(durationChild)=>{
-    // debugger;
+    debugger;
+    // setSelectedElement(el);
+
     if(durationChild){
       unSelectedElements = elements.filter((el)=>{
-        return el.id !== durationChild.id
+        if(el.id !== durationChild.id && el.type !== 'textNode'){
+          el.style = {...el.style,background:gray}
+          return true;
+        } 
+        return false;
       })
 
+      
       SelectedElements = elements.filter((el)=>{
         return el.id === durationChild.id
+      })
+
+      var unSelectedElementsTextChild = elements.filter((el)=>{
+        if(el.parent !== durationChild.id && el.type ==='textNode'){
+          el.style = {...el.style,background:'white'};
+          return true;
+        }
+        return false;
+      })
+
+      SelectedElementsTextChild = elements.filter((el)=>{
+        if(el.parent === durationChild.id && el.type ==='textNode'){
+          el.style = {...el.style,background:blue};
+          return true;
+        }
+        return false;
       })
 
       SelectedElements[0].started = true;
@@ -269,15 +322,20 @@ const CustomNodeFlow = () => {
       SelectedElements[0].data.started = true;
       SelectedElements[0].data.CompleteTask = CompleteTask;
 
-      setElements([...unSelectedElements,...SelectedElements]);
+      setElements([...unSelectedElements,...SelectedElements,...SelectedElementsTextChild, ...unSelectedElementsTextChild]);
 
     }else{
       unSelectedElements = elements.filter((el)=>{
-        return el.id !== selectedElement.id
+        return el.style.background!==blue
       })
       SelectedElements = elements.filter((el)=>{
-        return el.id === selectedElement.id
+        return el.style.background===blue
       })
+      if(!SelectedElements[0]){
+        SelectedElements = elements.filter((el)=>{
+          return el.id === 'horizontal-1'
+        })
+      }
       if(SelectedElements[0].started !==true){
         SelectedElements[0].started = true;
         SelectedElements[0].startTime = moment();
@@ -295,14 +353,20 @@ const CustomNodeFlow = () => {
   const CompleteTask =()=>{
     debugger;
     for(var a=0;a<elements.length;a++){
+      // elements[a].style = {...elements[a].style,background:gray}
+
       if(elements[a].started === true){
         elements[a].started = false;
         elements[a].completed = true;
-        elements[a].style = {...elements[a].style,background:blue}
+
 
         for(var b=0;b<durationElements.length;b++){
           if(durationElements[b].id===elements[a].id){
-            startTask(durationElements[b+1]);
+            var c=1;
+            while(durationElements[b+c].type==='textNode'){
+              c++
+            }
+            startTask(durationElements[b+c]);
           }
         }
       }
@@ -310,18 +374,11 @@ const CustomNodeFlow = () => {
     console.log('form text hi');
   }
 
-
-  const startRecording = () =>{
-    setRecording(true)
-  }
-
-  const stopRecording = () =>{
-    setRecording(false)
-  }
-
   useEffect(() => {
     setColumns();
-  }, [count]);
+    setSelectedElement(blueElements[0]);
+
+  }, []);
 
   useEffect(() => {
     if (reactflowInstance && elements.length > 0) {
@@ -353,7 +410,7 @@ const CustomNodeFlow = () => {
   );
 
   return (
-    <Layout durationElements={durationElements}  CompleteTask={CompleteTask} startTask={()=>{startTask()}} recording={recording} stopRecording={stopRecording} startRecording={startRecording} selectedElement={selectedElement}>
+    <Layout durationElements={durationElements}  CompleteTask={CompleteTask} startTask={()=>{startTask()}} selectedElement={selectedElement}>
       <div style={{height:'30em'}}>
         <ReactFlow
           elements={elements}
@@ -369,14 +426,10 @@ const CustomNodeFlow = () => {
           snapGrid={snapGrid}
           defaultZoom={1.5}
         >
-          <Controls />
+          {/* <Controls /> */}
         </ReactFlow>
 
-        <Button onClick={()=>setColumns()}>
-          setColumns
-        </Button>
-
-        <Counter/>
+        {/* <Counter/> */}
 
         <EmptyProgress elements={elements} durationElements={durationElements} setDurationElements={setDurationElements}/>
         <NodeDialog nodeText={nodeText} setNodeText={setNodeText} AddNode={AddNode}/>
